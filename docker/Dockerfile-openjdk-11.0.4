@@ -1,0 +1,17 @@
+FROM openjdk:11.0.4 as builder
+WORKDIR /workspace/app
+
+COPY .mvn .mvn
+COPY src src
+COPY pom.xml mvnw ./
+
+RUN ./mvnw clean package
+
+FROM openjdk:11.0.4 as runtime
+WORKDIR /application
+
+COPY --from=builder /workspace/app/target/spring-petclinic*.jar /application/app.jar
+RUN chgrp -R 0 /application & chmod -R g=u /application
+
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
